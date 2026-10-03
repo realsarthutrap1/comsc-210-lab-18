@@ -1,8 +1,12 @@
 // COMSC-210 | Lab 18 | Sarthak Pani
 #include <iostream>
+#include <fstream>
 #include <iomanip>
+#include <cstdlib>
+#include <ctime>
 #include <string>
 #include <utility>
+#include <vector>
 using namespace std;
 
 class Movie {
@@ -26,11 +30,37 @@ public:
 };
 
 int main() {
-    Movie movie("Lord of the Rings");
-    movie.addReview(3.3, "An epic journey with stunning visuals.");
-    movie.addReview(2.3, "Too long, but the battles are incredible.");
-    movie.addReview(2.0, "The best fantasy film ever made.");
-    movie.printReviews();
+    ifstream input("input.txt");
+    if (!input) {
+        cerr << "Could not open input.txt" << endl;
+        return 1;
+    }
+
+    const int REVIEWS_PER_MOVIE = 3;
+    const string titles[] = {"Lord of the Rings", "Inception", "Interstellar", "The Dark Knight"};
+    vector<Movie> movies;
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    // each group of three lines belongs to the next movie
+    for (const string& title : titles) {
+        Movie movie(title);
+        for (int i = 0; i < REVIEWS_PER_MOVIE; i++) {
+            string comment;
+            if (!getline(input, comment)) {
+                cerr << "Could not read review " << i + 1 << " for " << title
+                     << " from input.txt; expected 12 comment lines." << endl;
+                return 1;
+            }
+            double rating = (rand() % 41 + 10) / 10.0;
+            movie.addReview(rating, comment);
+        }
+        movies.push_back(movie);
+    }
+
+    for (const Movie& movie : movies) {
+        movie.printReviews();
+        cout << endl;
+    }
     return 0;
 }
 
