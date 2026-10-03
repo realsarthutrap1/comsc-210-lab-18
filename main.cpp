@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <utility>
 using namespace std;
 
 class Movie {
@@ -18,9 +19,8 @@ private:
 public:
     Movie(const string& movieTitle);
     ~Movie();
-    // copying is disabled until deep copying is implemented
-    Movie(const Movie& other) = delete;
-    Movie& operator=(const Movie& other) = delete;
+    Movie(const Movie& other);
+    Movie& operator=(const Movie& other);
     void addReview(double rating, const string& comment);
     void printReviews() const;
 };
@@ -37,6 +37,32 @@ int main() {
 Movie::Movie(const string& movieTitle) {
     title = movieTitle;
     head = nullptr;
+}
+
+// append copied nodes so the review order stays the same
+Movie::Movie(const Movie& other) : Movie(other.title) {
+    const Review* current = other.head;
+    Review* tail = nullptr;
+    while (current != nullptr) {
+        Review* review = new Review{current->rating, current->comment, nullptr};
+        if (tail == nullptr) {
+            head = review;
+        } else {
+            tail->next = review;
+        }
+        tail = review;
+        current = current->next;
+    }
+}
+
+// copy first, then let the temporary movie clean up the old reviews
+Movie& Movie::operator=(const Movie& other) {
+    if (this != &other) {
+        Movie copy(other);
+        swap(title, copy.title);
+        swap(head, copy.head);
+    }
+    return *this;
 }
 
 // release every review owned by this movie
